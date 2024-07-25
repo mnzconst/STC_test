@@ -6,6 +6,11 @@
 #include <algorithm>
 #include <concepts>
 
+/*
+ * Функция, вычисляющая простое скользящее среднее
+ * samples - входные отсчеты
+ * window_width - ширина окна
+ */
 template<std::floating_point T>
 std::vector<T> simple_moving_average(std::vector<T> const &samples, size_t window_width) {
     size_t N = 0;
@@ -26,17 +31,24 @@ std::vector<T> simple_moving_average(std::vector<T> const &samples, size_t windo
     return result;
 }
 
-template<std::floating_point T,
+/*
+ * Функция, генерирующая случайные отсчеты
+ * T - тип данных
+ * Distribution - тип распределения
+ * lower_bound - наименьшее значение
+ * upper_bound - наибольшее значение
+ * size - размер выборки
+ */
+template<class T,
         class Distribution = std::uniform_real_distribution<T>>
 std::vector<T> generate_random_samples(T lower_bound, T upper_bound, size_t size) {
     std::random_device rnd_device;
     std::mt19937 mt {rnd_device()};
-    Distribution dist {lower_bound, upper_bound};
+    Distribution distribution {lower_bound, upper_bound};
 
     auto gen = [&]() {
-        return dist(mt);
+        return distribution(mt);
     };
-
     std::vector<T> vec(size);
     std::generate(vec.begin(), vec.end(), gen);
     return vec;

@@ -3,31 +3,42 @@
 #include <fstream>
 #include <chrono>
 
+/*
+ * Функция проверки производительности простого скользящего среднего
+ * lower_bound - наибольшее значение отсчета
+ * upper_bound - наименьшее значение отсчета
+ * number_of_samples - количество отсчетов
+ * window_width - список размеров окон
+ * datatype - литерал для обозначения используемого типа данных
+ */
 template<class T>
-void print_vector(std::vector<T> const &v) {
-    for (T val: v) {
-        std::cout << val << " ";
+void test_performance(int lower_bound,
+                      int upper_bound,
+                      size_t number_of_samples,
+                      std::vector<size_t> const &window_width,
+                      std::string const &datatype) {
+    // Генерируем отсчеты
+    std::vector<T> vec = generate_random_samples<T, std::normal_distribution<T>>(lower_bound, upper_bound,
+                                                                                 number_of_samples);
+    // Записываем сгенерированные отсчеты в файл для дальнейшего анализа
+    std::ofstream file("../output_files/input_" + datatype + ".txt");
+    for (T it: vec) {
+        file << it << " ";
     }
-    std::cout << std::endl;
-}
+    file.close();
 
-template<class T>
-void solve(int lower_bound, int upper_bound, size_t number_of_samples, std::string const &datatype) {
-    std::vector<T> vec = generate_random_samples<T>(lower_bound, upper_bound, number_of_samples);
-
-    std::vector<size_t> window_sizes = {4, 8, 16, 32, 64, 128};
-    for (size_t size: window_sizes) {
-//        std::cout << "size: " << size << std::endl;
+    for (size_t width: window_width) {
         auto start = std::chrono::steady_clock::now();
-        std::vector<T> v = simple_moving_average(vec, size);
+        // Вычисляем скользящее среднее
+        std::vector<T> v = simple_moving_average(vec, width);
         auto end = std::chrono::steady_clock::now();
-        std::cout
-//        << "Performance: "
-                  << number_of_samples / std::chrono::duration<double>(end - start).count()
+        std::cout << "Performance for type " << datatype << ", window width " << width << ": "
+                  << std::setprecision(10) << number_of_samples / std::chrono::duration<double>(end - start).count()
                   << std::endl;
-//        print_vector(v);
-        std::ofstream outfile("../output_files/output_" + datatype + std::to_string(size) + ".txt");
-        for (T it : v) {
+
+        // Записываем скользящее среднее в файл для дальнейшего анализа
+        std::ofstream outfile{"../output_files/output_" + datatype + std::to_string(width) + ".txt"};
+        for (T it: v) {
             outfile << it << " ";
         }
         outfile.close();
@@ -35,10 +46,12 @@ void solve(int lower_bound, int upper_bound, size_t number_of_samples, std::stri
 }
 
 int main() {
-    size_t number_of_samples = 1000000;
-    int lower_bound = -100;
-    int upper_bound = 100;
+    // Задаем параметры для генерации отсчетов
+    size_t number_of_samples = 1000000; // Количество отсчетов
+    int lower_bound = -100; // Наименьшее значение отсчета
+    int upper_bound = 100; // Наибольшее значение отсчета
+    std::vector<size_t> window_width = {4, 8, 16, 32, 64, 128}; // Размеры окон
 
-    solve<double>(lower_bound, upper_bound, number_of_samples, "double");
-    solve<float>(lower_bound, upper_bound, number_of_samples, "float");
+    test_performance<double>(lower_bound, upper_bound, number_of_samples, window_width, "double");
+    test_performance<float>(lower_bound, upper_bound, number_of_samples, window_width, "float");
 }
