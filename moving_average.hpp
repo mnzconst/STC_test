@@ -46,11 +46,10 @@ std::vector<T> generate_random_samples(T lower_bound, T upper_bound, size_t size
     std::mt19937 mt {rnd_device()};
     Distribution distribution {lower_bound, upper_bound};
 
-    auto gen = [&]() {
-        return distribution(mt);
-    };
     std::vector<T> vec(size);
-    std::generate(vec.begin(), vec.end(), gen);
+    std::generate(vec.begin(), vec.end(), [&]() {
+        return distribution(mt);
+    });
     return vec;
 }
 

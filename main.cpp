@@ -10,22 +10,26 @@
  * number_of_samples - количество отсчетов
  * window_width - список размеров окон
  * datatype - литерал для обозначения используемого типа данных
+ * logging - флаг, отвечающий за запись данных в файлы, по умолчанию true
  */
 template<class T>
 void test_performance(int lower_bound,
                       int upper_bound,
                       size_t number_of_samples,
                       std::vector<size_t> const &window_width,
-                      std::string const &datatype) {
+                      std::string const &datatype,
+                      bool logging = true) {
     // Генерируем отсчеты
     std::vector<T> vec = generate_random_samples<T, std::normal_distribution<T>>(lower_bound, upper_bound,
                                                                                  number_of_samples);
     // Записываем сгенерированные отсчеты в файл для дальнейшего анализа
-    std::ofstream file("../output_files/input_" + datatype + ".txt");
-    for (T it: vec) {
-        file << it << " ";
+    if (logging) {
+        std::ofstream file("../output_files/input_" + datatype + ".txt");
+        for (T it: vec) {
+            file << it << " ";
+        }
+        file.close();
     }
-    file.close();
 
     for (size_t width: window_width) {
         auto start = std::chrono::steady_clock::now();
@@ -37,11 +41,13 @@ void test_performance(int lower_bound,
                   << std::endl;
 
         // Записываем скользящее среднее в файл для дальнейшего анализа
-        std::ofstream outfile{"../output_files/output_" + datatype + std::to_string(width) + ".txt"};
-        for (T it: v) {
-            outfile << it << " ";
+        if (logging) {
+            std::ofstream file{"../output_files/output_" + datatype + std::to_string(width) + ".txt"};
+            for (T it: v) {
+                file << it << " ";
+            }
+            file.close();
         }
-        outfile.close();
     }
 }
 
